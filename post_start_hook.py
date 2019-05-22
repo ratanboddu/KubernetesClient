@@ -7,17 +7,16 @@ extension = client.ExtensionsV1beta1Api()
 
 # Container
 container = client.V1Container(
-  name="nginx",
+  name="hooktest",
   image="nginx:1.7.9",
   image_pull_policy="IfNotPresent",
   ports=[client.V1ContainerPort(container_port=80)],
 
   lifecycle=client.V1Lifecycle(
-    pre_stop=client.V1Handler(
+    post_start=client.V1Handler(
        _exec=client.V1ExecAction(
            command=[
-                    # Commands to be executed in the prestop hook
-                    "echo \"Hello World\""
+                 'echo \'Hello World\''
                    ]
 
               )#closing for V1ExecAction
@@ -29,7 +28,7 @@ container = client.V1Container(
 
 # Template
 template = client.V1PodTemplateSpec(
-  metadata=client.V1ObjectMeta(labels={"app": "nginx"}),
+  metadata=client.V1ObjectMeta(labels={"app": "hooktest"}),
   spec=client.V1PodSpec(containers=[container]))
 
 
@@ -42,7 +41,7 @@ spec = client.ExtensionsV1beta1DeploymentSpec(
 deployment = client.ExtensionsV1beta1Deployment(
   api_version="extensions/v1beta1",
   kind="Deployment",
-  metadata=client.V1ObjectMeta(name="nginx-deployment"),
+  metadata=client.V1ObjectMeta(name="hooktest-deployment"),
   spec=spec)
 
 # Creation of the Deployment in specified namespace
