@@ -28,7 +28,7 @@ container = client.V1Container(
 
 # Template
 template = client.V1PodTemplateSpec(
-  metadata=client.V1ObjectMeta(labels={"app": "hooktest"}),
+  metadata=client.V1ObjectMeta(labels={"app": "hook-test"}),
   spec=client.V1PodSpec(containers=[container]))
 
 
@@ -37,13 +37,14 @@ spec = client.ExtensionsV1beta1DeploymentSpec(
   replicas=1,
   template=template)
 
-#Deployment
+# Deployment
 deployment = client.ExtensionsV1beta1Deployment(
   api_version="extensions/v1beta1",
   kind="Deployment",
-  metadata=client.V1ObjectMeta(name="hooktest-deployment"),
+  metadata=client.V1ObjectMeta(name="hook-test-deployment"),
   spec=spec)
 
 # Creation of the Deployment in specified namespace
-extension.create_namespaced_deployment(namespace="kube-client", body=deployment)
+# Can specify the namespace that you have created
+extension.create_namespaced_deployment(namespace="default", body=deployment)
 

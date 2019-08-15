@@ -3,7 +3,8 @@ from kubernetes import client, config
 # Fetching and loading Kubernetes Information
 config.load_kube_config()
 
-extension = client.BatchV1Api()
+batch_v1 = client.BatchV1Api()
+core_v1 = client.CoreV1Api
 
 # Volume
 volume = client.V1Volume(
@@ -12,8 +13,14 @@ volume = client.V1Volume(
 
 # Container
 container = client.V1Container(
-  name="jobtest",
-  image="nginx:1.7.9",
+  name="pi",
+  image="perl",
+  command=[
+      "perl",
+      "-Mbignum=bpi",
+      "-wle",
+      "print bpi(2000)"
+  ],
   image_pull_policy="IfNotPresent",
   ports=[client.V1ContainerPort(container_port=80)],
   volume_mounts=[client.V1VolumeMount(name=volume.name, mount_path="/kube-example")]
@@ -24,16 +31,14 @@ init_container = client.V1Container(
   name="init-container",
   image="alpine",
   image_pull_policy="IfNotPresent",
-  command=[
-          "echo \"Hello World\""
-          ],
   volume_mounts=[client.V1VolumeMount(name=volume.name, mount_path="/kube-example")]
 )
 
 # Template
 template = client.V1PodTemplateSpec(
-    metadata=client.V1ObjectMeta(labels={"app": "jobtest"}),
-    spec=client.V1PodSpec(init_containers=[init_container], containers=[container], volumes=[volume], restart_policy="Never")
+    metadata=client.V1ObjectMeta(labels={"app": "pi"}),
+    spec=client.V1PodSpec(init_containers=[init_container],
+                          containers=[container], volumes=[volume], restart_policy="Never")
 )
 
 # Spec
@@ -45,9 +50,19 @@ spec_pod = client.V1JobSpec(
 # job
 job = client.V1Job(
     kind="Job",
-    metadata=client.V1ObjectMeta(name="jobtest"),
+    metadata=client.V1ObjectMeta(name="pi"),
     spec=spec_pod
 )
 
-extension.create_namespaced_job(namespace="kube-client", body=job)
+batch_v1.create_namespaced_job(namespace="default", body=job)
+
+pods = core_v1.list_namespaced_pod(namespace="default")
+
+
+for i in pods.items:
+    if i.metadata.labels["job-name"] == "pi":
+        pod_id = i.metadata.name
+        core_v1.read_namespaced_pod_log(name=pod_id, namespace="default")
+
+
 

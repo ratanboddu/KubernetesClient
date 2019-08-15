@@ -7,9 +7,9 @@ extension = client.ExtensionsV1beta1Api()
 
 # Container
 container = client.V1Container(
-  name="nginx",
-  image="nginx:1.7.9",
-  image_pull_policy="IfNotPresent",
+  name="dep1",
+  image="registry.lti-aiq.in:443/mosaic-ai-logistics/mosaic-ai-templates-ga:Canary-Dep-1",
+  image_pull_policy="Never",
   ports=[client.V1ContainerPort(container_port=80)],
 
   lifecycle=client.V1Lifecycle(
@@ -29,7 +29,7 @@ container = client.V1Container(
 
 # Template
 template = client.V1PodTemplateSpec(
-  metadata=client.V1ObjectMeta(labels={"app": "nginx"}),
+  metadata=client.V1ObjectMeta(labels={"app": "dep1"}),
   spec=client.V1PodSpec(containers=[container]))
 
 
@@ -42,9 +42,9 @@ spec = client.ExtensionsV1beta1DeploymentSpec(
 deployment = client.ExtensionsV1beta1Deployment(
   api_version="extensions/v1beta1",
   kind="Deployment",
-  metadata=client.V1ObjectMeta(name="nginx-deployment"),
+  metadata=client.V1ObjectMeta(name="dep1"),
   spec=spec)
 
 # Creation of the Deployment in specified namespace
-extension.create_namespaced_deployment(namespace="kube-client", body=deployment)
+extension.create_namespaced_deployment(namespace="ratanb", body=deployment)
 
